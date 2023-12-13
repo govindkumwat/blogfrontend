@@ -6,16 +6,23 @@ import reportWebVitals from './reportWebVitals';
 import { MantineProvider } from '@mantine/core';
 import '@mantine/core/styles.css';
 import '@mantine/tiptap/styles.css';
+import { BrowserRouter as Router } from 'react-router-dom';
+import { Provider } from 'react-redux';
+import configureStore from './Radux/store';
 
 
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-  <React.StrictMode>
-    <MantineProvider>
-    <App />
-    </MantineProvider>
-  </React.StrictMode>
+  <Provider store={configureStore}>
+    <Router>
+      <React.StrictMode>
+        <MantineProvider>
+          <App />
+        </MantineProvider>
+      </React.StrictMode>
+    </Router>
+  </Provider>
 );
 
 // If you want to start measuring performance in your app, pass a function
