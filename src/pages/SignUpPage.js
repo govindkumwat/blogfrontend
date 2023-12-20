@@ -1,20 +1,34 @@
 // SignUpPage.js
 
 import React, { useState } from 'react';
+import { signup } from '../Radux/actions/auth';
+import { useDispatch } from 'react-redux';
+import { Link } from 'react-router-dom';
 
 const SignUpPage = () => {
   const [name, setName] = useState('');
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setisLoading] = useState(false)
 
-  const handleSubmit = (e) => {
+  const dispatch = useDispatch()
+
+  const handleSubmit = async(e) => {
     e.preventDefault();
-    // Add your signup logic here
-    console.log('Name:', name);
-    console.log('Username:', username);
-    console.log('Email:', email);
-    console.log('Password:', password);
+    setisLoading(true)
+    const userData = ({
+        "name" : name,
+        "username": username,
+        "email" : email,
+        "password" : password 
+    })
+    await dispatch(signup(userData))
+    setName('')
+    setUsername('')
+    setEmail('')
+    setPassword('')
+    setisLoading(false)
   };
 
   return (
@@ -66,8 +80,9 @@ const SignUpPage = () => {
           />
         </div>
         <div className="form-group">
-          <button type="submit">Sign Up</button>
+          <button type="submit">{isLoading ? 'Registering..' : 'Register'}</button>
         </div>
+        <Link to='/login'>Login</Link>
       </form>
     </div>
   );

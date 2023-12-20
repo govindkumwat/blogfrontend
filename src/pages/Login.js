@@ -1,32 +1,31 @@
 // Import necessary React modules
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
+import { connect } from 'react-redux';
 import { useNavigate } from 'react-router';
+import { Link } from 'react-router-dom';
+import { bindActionCreators } from 'redux';
+import { login } from '../Radux/actions/auth';
 
 // Create a functional component for the login page
-const LoginPage = () => {
+const LoginPage = (props) => {
   // State variables for username and password
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate()
+
+  const {login, loginData} = props
   // Function to handle form submission
-  const handleSubmit = (e) => {
+  const handleSubmit = async(e) => {
     e.preventDefault();
-    // Add your authentication logic here
-   axios.post(`http://localhost:3001/login`, {
-    email: username,
-    password: password
-   }).then((res) => 
-   {
-    if(res?.user) {
-        alert('hello')
-        localStorage.setItem('token', res.token);
-        navigate('/')
-    } else {
-        alert('Invalid username or password')
+    const data = {
+      email : username,
+      password: password
     }
-   })
+      await login(data)
   };
+
+  console.log(loginData)
 
 
   useEffect(() => {
@@ -63,9 +62,25 @@ const LoginPage = () => {
         <div className="form-group">
           <button type="submit">Login</button>
         </div>
+        <Link to='/signup'>Sign Up</Link>
       </form>
     </div>
   );
 };
 
-export default LoginPage;
+const mapStateToProps = (state) => {
+  return {
+   loginData : state
+  }
+}
+
+const mapDisPatchToProps = (dispatch) => {
+  return bindActionCreators(
+    {
+      login,
+    },
+    dispatch
+  )
+}
+
+export default connect(mapStateToProps, mapDisPatchToProps) (LoginPage);

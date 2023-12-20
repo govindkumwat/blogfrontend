@@ -8,13 +8,12 @@ import '@mantine/core/styles.css';
 import '@mantine/tiptap/styles.css';
 import { BrowserRouter as Router } from 'react-router-dom';
 import { Provider } from 'react-redux';
-import configureStore from './Radux/store';
-
+import store from './Radux';
 
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-  <Provider store={configureStore}>
+  <Provider store={store}>
     <Router>
       <React.StrictMode>
         <MantineProvider>

@@ -32,8 +32,7 @@ const UploadUI = ({setTitle, setDescription, setTags, tags, title, description, 
     setDescription(editor?.getHTML())
   }, [editor?.getHTML()])
 
-  console.log(editor?.getHTML()
-  , 'editor')
+
   return (
     <div>
 

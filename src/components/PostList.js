@@ -2,12 +2,14 @@ import React, { useEffect, useState } from 'react'
 import { Badge, Button, Modal } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { Link, useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
+import { connect, useDispatch, useSelector } from 'react-redux';
 
 import axios from 'axios';
 import Search from './Search';
 import UploadUI from './UploadUI';
-import { fetchPostAction } from '../Radux/actions/fetchPostAction';
+import getPostList from '../Radux/actions/getPostList';
+import setPostAction from '../Radux/actions/setPostAction';
+import { bindActionCreators } from 'redux';
 
 
 const TimeAgo = ({ timestamp }) => {
@@ -46,8 +48,7 @@ const TimeAgo = ({ timestamp }) => {
   return <span>{timeAgo}</span>;
 };
 
-
-const PostList = () => {
+const PostList = (props) => {
   const [postData, setPostData] = useState([])
   const [searchInput, setSearchInput] = useState('')
   const [opened, { open, close }] = useDisclosure(false);
@@ -57,45 +58,27 @@ const PostList = () => {
   const [thumbs, setThumbs] = useState([])
 
   const dispatch = useDispatch();
+  
+
+  const {getPostList, postList, setPostAction, savePostResponse} = props
 
   useEffect(() => {
-    dispatch(fetchPostAction());
+    getPostList()
   }, []);
 
-
-  const postsState = useSelector(state => state.posts);
-  console.log(postsState, 'homePOst')
-
-
-
-
   const navigate = useNavigate()
-
-  useEffect(() => {
-    axios('http://localhost:3001/posts')
-      .then(response => setPostData(response?.data))
-  }, [])
-
-  const config = {
-    headers: {
-      'Content-Type': 'multipart/form-data', // Important for file uploads
-    },
-  };
 
   const handleSubmit = async () => {
     try {
       const formattedTags = tags.map((tag, index) => ({ [`tags[${index}][value]`]: tag }));
-
-      const response = await axios.post('http://localhost:3001/savepost', {
+     await setPostAction(
         title,
         description,
         ...formattedTags,
-      }, config);
+        )
+       await close();
+      await dispatch(getPostList());
 
-      const postsResponse = await axios.get('http://localhost:3001/posts');
-      setPostData(postsResponse?.data);
-
-      close();
     } catch (error) {
       console.error('Error submitting post:', error);
     }
@@ -136,7 +119,7 @@ const PostList = () => {
       </div>
       <Search setSearchInput={setSearchInput} />
       {
-        postData
+        postList
           ?.filter(
             (data) =>
               data?.title?.toLowerCase()?.includes(searchInput.toLowerCase()) || data?.description?.toLowerCase()?.includes(searchInput.toLowerCase())
@@ -148,7 +131,7 @@ const PostList = () => {
                 <img className='thumbnail' src={`https://picsum.photos/200/300?random=${index}`} />
                 <div className='textPost'>
                   <div className='datenTime'>Author | <TimeAgo timestamp={data?.createdAt} /></div>
-                  <Link to={{ pathname: `${data._id}`, state: { postData } }}>
+                  <Link to={{ pathname: `${data._id}`, state: { postList } }}>
                     <div className='postTitle'>{data?.title}</div>
                   </Link>
                   <div className='postDescription'> <div
@@ -172,4 +155,21 @@ const PostList = () => {
   )
 }
 
-export default PostList
+const mapStateToProps = (state) => {
+  return {
+    postList: state?.getPostReducers?.data,
+    savePostResponse: state?.setPostReducers.data
+  }
+}
+
+const mapDisPatchToProps = (dispatch) => {
+  return bindActionCreators(
+    {
+      getPostList,
+      setPostAction
+    },
+    dispatch
+  )
+}
+
+export default connect(mapStateToProps, mapDisPatchToProps) (PostList)
