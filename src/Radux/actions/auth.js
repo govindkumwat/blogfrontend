@@ -8,7 +8,7 @@ import {
   LOGIN_SUCCESS,
   LOGIN_FAILURE
 } from '../ActonTypes';
-import { postApiCall } from '../utils/Action';
+import { getApiCall, postApiCall } from '../utils/Action';
 
 const signupRequest = () => ({
   type: SIGNUP_REQUEST,
@@ -63,12 +63,28 @@ export const login = (credentials) => {
         console.log(currentState);
       dispatch(loginRequest());
   
-      postApiCall('/login', credentials)
+      axios.post('http://localhost:3001/login', credentials)
         .then((response) => {
             console.log(response.data, 'res')
         if(response) {
             localStorage.setItem('token', response.data.token)
             dispatch(loginSuccess(response.data));
+        }
+         
+        })
+        .catch((error) => {
+          dispatch(loginFailure(error.message));
+        });
+    };
+  };
+
+  export const userDetails = () => {
+    return (dispatch) => {
+      getApiCall('http://localhost:3001/user-details')
+        .then((response) => {
+            console.log(response.data, 'res')
+        if(response) {
+            dispatch(loginSuccess(response));
         }
          
         })

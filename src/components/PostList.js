@@ -10,7 +10,43 @@ import UploadUI from './UploadUI';
 import getPostList from '../Radux/actions/getPostList';
 import setPostAction from '../Radux/actions/setPostAction';
 import { bindActionCreators } from 'redux';
+import { userDetails } from '../Radux/actions/auth';
 
+
+import { forwardRef } from 'react';
+import { IconChevronRight, IconLogout, IconUser } from '@tabler/icons-react';
+import { Group, Avatar, Text, Menu, UnstyledButton } from '@mantine/core';
+
+
+const UserButton = forwardRef(
+  ({ image, name, email, icon, ...others }, ref) => (
+    <UnstyledButton
+      ref={ref}
+      style={{
+        padding: 'var(--mantine-spacing-md)',
+        color: 'var(--mantine-color-text)',
+        borderRadius: 'var(--mantine-radius-sm)',
+      }}
+      {...others}
+    >
+      <Group>
+        <Avatar src={image} radius="xl" />
+
+        <div style={{ flex: 1 }}>
+          <Text size="sm" fw={500}>
+            {name}
+          </Text>
+
+          <Text c="dimmed" size="xs">
+            {email}
+          </Text>
+        </div>
+
+        {icon || <IconChevronRight size="1rem" />}
+      </Group>
+    </UnstyledButton>
+  )
+);
 
 const TimeAgo = ({ timestamp }) => {
   const [timeAgo, setTimeAgo] = useState('');
@@ -60,9 +96,10 @@ const PostList = (props) => {
   const dispatch = useDispatch();
   
 
-  const {getPostList, postList, setPostAction, savePostResponse} = props
+  const {getPostList, postList, setPostAction, savePostResponse, userDetails, userInfo} = props
 
   useEffect(() => {
+    userDetails()
     getPostList()
   }, []);
 
@@ -72,6 +109,8 @@ const PostList = (props) => {
     try {
       const formattedTags = tags.map((tag, index) => ({ [`tags[${index}][value]`]: tag }));
      await setPostAction(
+        userInfo?.userId,
+        userInfo?.name,
         title,
         description,
         ...formattedTags,
@@ -109,12 +148,33 @@ const PostList = (props) => {
       </Modal>
 
       <div className='uploadbutton'>
-        <h2 className='trendingheader'>Trending</h2>
+        <h2 className='trendingheader'>Trashpost</h2>
         <div className='btnGroup'>
         <Button onClick={open} leftSection={<svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024" height="1.5em" width="1.5em" xmlns="http://www.w3.org/2000/svg"><path d="M400 317.7h73.9V656c0 4.4 3.6 8 8 8h60c4.4 0 8-3.6 8-8V317.7H624c6.7 0 10.4-7.7 6.3-12.9L518.3 163a8 8 0 0 0-12.6 0l-112 141.7c-4.1 5.3-.4 13 6.3 13zM878 626h-60c-4.4 0-8 3.6-8 8v154H214V634c0-4.4-3.6-8-8-8h-60c-4.4 0-8 3.6-8 8v198c0 17.7 14.3 32 32 32h684c17.7 0 32-14.3 32-32V634c0-4.4-3.6-8-8-8z"></path></svg>} variant="filled">
           Upload
         </Button>
-        <Button onClick={() => navigate('/login')} style={{marginLeft: '10px'}}>Login</Button>
+        {
+          userInfo?.name ?
+          <Menu withArrow>
+          <Menu.Target>
+            <UserButton
+              image="https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-8.png"
+              name={userInfo?.name}
+              email={userInfo?.email}
+            />
+          </Menu.Target>
+          <Menu.Dropdown>
+          <Menu.Item leftSection={<IconUser style={{ width: '1rem', height:'1rem' }} />}>
+          Profile
+        </Menu.Item>
+          <Menu.Item leftSection={<IconLogout style={{ width: '1rem', height:'1rem' }} />}>
+          Logout
+        </Menu.Item>
+          </Menu.Dropdown>
+        </Menu>
+          :
+          <Button onClick={() => navigate('/login')} style={{marginLeft: '10px'}}>Login</Button>
+        }
         </div>
       </div>
       <Search setSearchInput={setSearchInput} />
@@ -130,7 +190,7 @@ const PostList = (props) => {
               <div className='post'>
                 <img className='thumbnail' src={`https://picsum.photos/200/300?random=${index}`} />
                 <div className='textPost'>
-                  <div className='datenTime'>Author | <TimeAgo timestamp={data?.createdAt} /></div>
+                  <div className='datenTime'>{data?.userName} | <TimeAgo timestamp={data?.createdAt} /></div>
                   <Link to={{ pathname: `${data._id}`, state: { postList } }}>
                     <div className='postTitle'>{data?.title}</div>
                   </Link>
@@ -150,15 +210,14 @@ const PostList = (props) => {
           ))
       }
     </>
-
-
   )
 }
 
 const mapStateToProps = (state) => {
   return {
     postList: state?.getPostReducers?.data,
-    savePostResponse: state?.setPostReducers.data
+    savePostResponse: state?.setPostReducers.data,
+    userInfo: state?.loginReducer?.user?.data
   }
 }
 
@@ -166,7 +225,8 @@ const mapDisPatchToProps = (dispatch) => {
   return bindActionCreators(
     {
       getPostList,
-      setPostAction
+      setPostAction,
+      userDetails
     },
     dispatch
   )
