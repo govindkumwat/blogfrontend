@@ -2,23 +2,34 @@ import logo from './logo.svg';
 import './App.css';
 import Home from './pages/Home';
 import '@mantine/tiptap/styles.css';
-import { Route, Routes } from 'react-router-dom';
+import { Route, Routes, useNavigate } from 'react-router-dom';
 import About from './pages/About';
 import Description from './pages/Description';
 import LoginPage from './pages/Login';
 import SignUpPage from './pages/SignUpPage';
+import toast, { Toaster } from 'react-hot-toast';
+
 
 
 function App() {
+  const isAuthenticated = localStorage.getItem('token')
+  const Navigate = useNavigate()
   return (
    <>
    <Routes>
-     <Route path='/' element={<Home/>}/>
-     <Route path='/about' element={<About/>}/>
-     <Route path='/:id' element={<Description/>}/>
-     <Route path='/login' element={<LoginPage/>}/>
-     <Route path = '/signup' element={<SignUpPage/>}/>
-   </Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/about" element={<About />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/signup" element={<SignUpPage />} />
+
+      {/* Dynamic route with parameter */}
+      <Route path="/:id" element={<Description />} />
+
+      {/* Catch-all route for 404 */}
+      <Route path="*" element={<About />} />
+    </Routes>
+    <Toaster/>
+   
   
    </>
   );

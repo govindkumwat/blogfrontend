@@ -1,9 +1,14 @@
-import { Button, Input, TextInput, Textarea } from '@mantine/core';
+import { Badge, Button, Input, Text, TextInput, Textarea, Avatar, Group  } from '@mantine/core';
 import { IconAt } from '@tabler/icons-react';
 import axios from 'axios'
 import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router'
 import { useLocation } from 'react-router'
+import postById from '../Radux/actions/postById';
+import { bindActionCreators } from 'redux';
+import { connect } from 'react-redux';
+import { userDetails } from '../Radux/actions/auth';
+
 
 const TimeAgo = ({ timestamp }) => {
     const [timeAgo, setTimeAgo] = useState('');
@@ -40,11 +45,15 @@ const Description = (props) => {
     const [data, setData] = useState([])
     const params = useParams()
 
+    const {postById, detailPost, userDetails} = props 
+
+    console.log(userDetails, 'userDetails')
+
     const [state, setState] = useState({
         id: params?.id,
         comment: null,
-        name: null,
-        email: null,
+        name: userDetails?.data?.name || null,
+        email: userDetails?.data?.email || null,
         commentsList: [],
         savecomment: []
 
@@ -52,13 +61,13 @@ const Description = (props) => {
 
     const { id, comment, name, email, commentsList } = state;
 
-    useEffect( () => {
-         axios('http://localhost:3001/posts')
-             .then((res) => setData(res))
-            
- 
- 
-     }, [])
+    useEffect(() => {
+        postById(params.id)
+    },[])
+
+    console.log(detailPost)
+
+   
  
     useEffect(() => {
         axios(`http://localhost:3001/getcomment/${state?.id}`)
@@ -113,20 +122,32 @@ const Description = (props) => {
     return (
         <div className='detailContainer'>
             <div className='desctitle'>
-                {data && data?.data?.filter((data, index) => data?._id == params.id)[0]?.title}
+              {detailPost.title}
             </div>
-            <div className='datenTime'>Author | <TimeAgo timestamp={data && data?.data?.filter((data, index) => data?._id == params.id)[0]?.createdAt} /></div>
+            <div className='postCategory'>
+                    {
+                      detailPost?.tags?.map((tagsdata, index) => (
+                        <Badge color={'blue'}>{tagsdata}</Badge>
+                      ))
+                    }
+                  </div>
+            <div className='datenTime'>Posted By: {detailPost.userName} | <TimeAgo timestamp={detailPost?.createdAt} /></div>
 
             <div className='imageContainerDesc'>
 
             </div>
             <div className='descBody'>
             <div
-      dangerouslySetInnerHTML={{__html: data && data?.data?.filter((data, index) => data?._id == params.id)[0]?.description}}/>
+      dangerouslySetInnerHTML={{__html: detailPost?.description}}/>
                 {/* {data && data?.data?.filter((data, index) => data?._id == params.id)[0]?.description} */}
             </div>
 
             <div className='comment-section'>
+                {
+                    userDetails?.data?.name && 
+                    <Text mt={10} mb={10}>Commenting as <strong>{userDetails?.data?.name}</strong> </Text>
+                }
+                
                 <Textarea
                     value={comment}
                     size="md"
@@ -138,7 +159,10 @@ const Description = (props) => {
                         }))
                     }}
                 />
-                <TextInput mt={'10px'} value={name} placeholder='Name' required onChange={(e) => {
+                {
+                    userDetails == null ? 
+                    <>
+                    <TextInput mt={'10px'} value={name} placeholder='Name' required onChange={(e) => {
                     setState((prevState) => ({
                         ...prevState,
                         name: e.target.value
@@ -155,6 +179,11 @@ const Description = (props) => {
                             email: e.target.value
                         }))
                     }} />
+                    </>
+                    :
+                    null
+                }
+                
                 <Button mt={10} loaderProps={{ type: 'dots' }} onClick={() =>
                     handleComments()
                 }>
@@ -162,27 +191,32 @@ const Description = (props) => {
                 </Button>
 
             </div>
-            <div className='comemnt-heading'>Comments</div>
+            {
+                commentsList.length > 0 && 
+                <div className='comemnt-heading'>Comments</div>
+            }
+            
 
             {
                 commentsList && commentsList?.map((data, index) => (
-                    <div className='commentList'>
-                        <div className='commentorinfo'>
-                            <div className='commentor'>
-                                {data?.name}
-                            </div>
-                            <div className='commentwhen'>
-                                <TimeAgo timestamp={data.createdAt} />
-                            </div>
-                        </div>
-
-
-                        <div className='commentcontents'>
-                            {data?.comment}
-                        </div>
-
-                    </div>
-
+                    <div style={{border: '1px solid #d2d2d2', borderRadius: '10px', padding: '6px', marginBottom: '10px'}}>
+                    <Group >
+                      <Avatar
+                        src="https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-1.png"
+                        alt="Jacob Warnhalter"
+                        radius="xl"
+                      />
+                      <div>
+                        <Text size="sm"> {data?.name}</Text>
+                        <Text size="xs" c="dimmed">
+                        <TimeAgo timestamp={data.createdAt} />
+                        </Text>
+                      </div>
+                    </Group>
+                    <Text pl={54} pt="sm" size="sm">
+                    {data?.comment}
+                    </Text>
+                  </div>
                 ))
             }
 
@@ -191,4 +225,21 @@ const Description = (props) => {
     )
 }
 
-export default Description
+const mapStateToProps = (state) => {
+    return {
+     detailPost: state?.postByIdReducer?.data,
+     userDetails: state?.loginReducer.user
+    }
+  }
+  
+  const mapDisPatchToProps = (dispatch) => {
+    return bindActionCreators(
+      {
+        postById
+      },
+      dispatch
+    )
+  }
+  
+
+export default connect(mapStateToProps, mapDisPatchToProps) (Description)

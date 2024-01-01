@@ -1,0 +1,1 @@
+export const baseUrl = 'https://blogbackend-7938.onrender.com'

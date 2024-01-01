@@ -9,6 +9,9 @@ import Underline from '@tiptap/extension-underline';
 import TextAlign from '@tiptap/extension-text-align';
 import Superscript from '@tiptap/extension-superscript';
 import SubScript from '@tiptap/extension-subscript';
+import Image from '@tiptap/extension-image'
+import Dropcursor from '@tiptap/extension-dropcursor'
+
 
 
 const content =''
@@ -23,6 +26,8 @@ const UploadUI = ({setTitle, setDescription, setTags, tags, title, description, 
       Superscript,
       SubScript,
       Highlight,
+      Image,
+      Dropcursor,
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
     ],
     content,

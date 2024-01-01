@@ -6,9 +6,12 @@ import {
   SIGNUP_FAILURE,
   LOGIN_REQUEST,
   LOGIN_SUCCESS,
-  LOGIN_FAILURE
+  LOGIN_FAILURE,
+  LOGOUT_ACTION
 } from '../ActonTypes';
 import { getApiCall, postApiCall } from '../utils/Action';
+import { toast } from 'react-hot-toast';
+import { baseUrl } from '../../apiConstant';
 
 const signupRequest = () => ({
   type: SIGNUP_REQUEST,
@@ -38,18 +41,28 @@ const loginRequest = () => ({
     payload: error,
   });
 
+
+ 
 export const signup = (name, username, email, password) => {
   return (dispatch) => {
     // Dispatch the signup request action
     dispatch(signupRequest());
 
     // Make the API call to signup
-    axios.post('http://localhost:3001/signup',  name, username, email, password)
+    axios.post(`${baseUrl}/signup`,  name, username, email, password)
       .then((response) => {
+        console.log(response)
+        if(response.status == 201) {
+          toast.success('Signup Success, Login with your Credentials')
+        } else {
+          toast.error(response.message)
+        }
+       
         // Dispatch the signup success action with the received data
         dispatch(signupSuccess(response.data));
       })
       .catch((error) => {
+        toast.error("Somthing went wrong, Try again!")
         // Dispatch the signup failure action with the error
         dispatch(signupFailure(error.message));
       });
@@ -63,9 +76,9 @@ export const login = (credentials) => {
         console.log(currentState);
       dispatch(loginRequest());
   
-      axios.post('http://localhost:3001/login', credentials)
+      axios.post(`${baseUrl}/login`, credentials)
         .then((response) => {
-            console.log(response.data, 'res')
+          toast.success('Login Success')
         if(response) {
             localStorage.setItem('token', response.data.token)
             dispatch(loginSuccess(response.data));
@@ -73,6 +86,7 @@ export const login = (credentials) => {
          
         })
         .catch((error) => {
+          toast.error('Invalid Credentials')
           dispatch(loginFailure(error.message));
         });
     };
@@ -80,16 +94,36 @@ export const login = (credentials) => {
 
   export const userDetails = () => {
     return (dispatch) => {
-      getApiCall('http://localhost:3001/user-details')
+      getApiCall(`${baseUrl}/user-details`)
         .then((response) => {
             console.log(response.data, 'res')
         if(response) {
             dispatch(loginSuccess(response));
+            if(response.status == 401) {
+              localStorage.removeItem('token')
+            }
         }
          
         })
         .catch((error) => {
           dispatch(loginFailure(error.message));
+          localStorage.removeItem('token')
         });
     };
   };
+
+  export const performLogOutAction = (history) => {
+    return async (dispatch) => {
+        try {
+            await postApiCall("/logout");
+            localStorage.clear();
+            window.history.pushState([], [], window.location.href);
+            window.onpopstate = function (event) {
+                history.go(0);
+            };
+            dispatch({ type: LOGOUT_ACTION });
+        } catch (error) {
+            throw error;
+        }
+    };
+};

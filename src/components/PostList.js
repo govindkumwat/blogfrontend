@@ -11,7 +11,7 @@ import getPostList from '../Radux/actions/getPostList';
 import setPostAction from '../Radux/actions/setPostAction';
 import { bindActionCreators } from 'redux';
 import { userDetails } from '../Radux/actions/auth';
-
+import { performLogOutAction } from '../Radux/actions/auth';
 
 import { forwardRef } from 'react';
 import { IconChevronRight, IconLogout, IconUser } from '@tabler/icons-react';
@@ -74,10 +74,8 @@ const TimeAgo = ({ timestamp }) => {
     };
 
     calculateTimeAgo();
-
     // Refresh time every minute (optional)
     const intervalId = setInterval(calculateTimeAgo, 60000);
-
     return () => clearInterval(intervalId);
   }, [timestamp]);
 
@@ -92,11 +90,11 @@ const PostList = (props) => {
   const [description, setDescription] = useState('')
   const [tags, setTags] = useState([])
   const [thumbs, setThumbs] = useState([])
-
   const dispatch = useDispatch();
+
   
 
-  const {getPostList, postList, setPostAction, savePostResponse, userDetails, userInfo} = props
+  const {getPostList, postList, setPostAction, savePostResponse, userDetails, userInfo, performLogOutAction} = props
 
   useEffect(() => {
     userDetails()
@@ -106,16 +104,18 @@ const PostList = (props) => {
   const navigate = useNavigate()
 
   const handleSubmit = async () => {
+    console.log(tags, 'tagm3')
     try {
-      const formattedTags = tags.map((tag, index) => ({ [`tags[${index}][value]`]: tag }));
      await setPostAction(
         userInfo?.userId,
         userInfo?.name,
         title,
         description,
-        ...formattedTags,
+        tags,
         )
        await close();
+       setTitle('')
+       setTags([])
       await dispatch(getPostList());
 
     } catch (error) {
@@ -132,9 +132,13 @@ const PostList = (props) => {
     return color;
   };
 
+  const profileNavigate = () => {
+    navigate('/profile')
+  }
+
   return (
     <>
-      <Modal opened={opened} onClose={close} title="Add New Post">
+      <Modal opened={opened} onClose={close} fullScreen title="Add New Post">
         <UploadUI
           setTitle={setTitle}
           setDescription={setDescription}
@@ -150,9 +154,11 @@ const PostList = (props) => {
       <div className='uploadbutton'>
         <h2 className='trendingheader'>Trashpost</h2>
         <div className='btnGroup'>
-        <Button onClick={open} leftSection={<svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024" height="1.5em" width="1.5em" xmlns="http://www.w3.org/2000/svg"><path d="M400 317.7h73.9V656c0 4.4 3.6 8 8 8h60c4.4 0 8-3.6 8-8V317.7H624c6.7 0 10.4-7.7 6.3-12.9L518.3 163a8 8 0 0 0-12.6 0l-112 141.7c-4.1 5.3-.4 13 6.3 13zM878 626h-60c-4.4 0-8 3.6-8 8v154H214V634c0-4.4-3.6-8-8-8h-60c-4.4 0-8 3.6-8 8v198c0 17.7 14.3 32 32 32h684c17.7 0 32-14.3 32-32V634c0-4.4-3.6-8-8-8z"></path></svg>} variant="filled">
-          Upload
-        </Button>
+          {
+            userInfo?.name && 
+            <Button onClick={open} leftSection={<svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024" height="1.5em" width="1.5em" xmlns="http://www.w3.org/2000/svg"><path d="M400 317.7h73.9V656c0 4.4 3.6 8 8 8h60c4.4 0 8-3.6 8-8V317.7H624c6.7 0 10.4-7.7 6.3-12.9L518.3 163a8 8 0 0 0-12.6 0l-112 141.7c-4.1 5.3-.4 13 6.3 13zM878 626h-60c-4.4 0-8 3.6-8 8v154H214V634c0-4.4-3.6-8-8-8h-60c-4.4 0-8 3.6-8 8v198c0 17.7 14.3 32 32 32h684c17.7 0 32-14.3 32-32V634c0-4.4-3.6-8-8-8z"></path></svg>} variant="filled"> Post
+            </Button>
+          }
         {
           userInfo?.name ?
           <Menu withArrow>
@@ -164,10 +170,8 @@ const PostList = (props) => {
             />
           </Menu.Target>
           <Menu.Dropdown>
-          <Menu.Item leftSection={<IconUser style={{ width: '1rem', height:'1rem' }} />}>
-          Profile
-        </Menu.Item>
-          <Menu.Item leftSection={<IconLogout style={{ width: '1rem', height:'1rem' }} />}>
+         
+          <Menu.Item leftSection={<IconLogout style={{ width: '1rem', height:'1rem' }} />} onClick={() => performLogOutAction()}>
           Logout
         </Menu.Item>
           </Menu.Dropdown>
@@ -190,20 +194,21 @@ const PostList = (props) => {
               <div className='post'>
                 <img className='thumbnail' src={`https://picsum.photos/200/300?random=${index}`} />
                 <div className='textPost'>
-                  <div className='datenTime'>{data?.userName} | <TimeAgo timestamp={data?.createdAt} /></div>
+                  <div className='datenTime'>Posted By: {data?.userName} | <TimeAgo timestamp={data?.createdAt} /></div>
                   <Link to={{ pathname: `${data._id}`, state: { postList } }}>
                     <div className='postTitle'>{data?.title}</div>
                   </Link>
-                  <div className='postDescription'> <div
-                    dangerouslySetInnerHTML={{ __html: data?.description }}
-                  /></div>
                   <div className='postCategory'>
                     {
-                      data?.category?.map((tagsdata, index) => (
-                        <Badge color={getRandomColor()}>{tagsdata}</Badge>
+                      data?.tags?.map((tagsdata, index) => (
+                        <Badge color={'blue'}>{tagsdata}</Badge>
                       ))
                     }
                   </div>
+                  {/* <div className='postDescription'> <div
+                    dangerouslySetInnerHTML={{ __html: data?.description }}
+                  /></div> */}
+                  
                 </div>
               </div>
             </div>
@@ -226,7 +231,8 @@ const mapDisPatchToProps = (dispatch) => {
     {
       getPostList,
       setPostAction,
-      userDetails
+      userDetails,
+      performLogOutAction
     },
     dispatch
   )
