@@ -24,7 +24,7 @@ const LoginPage = (props) => {
    
     const data = {
       email : username,
-      password: password
+      password: password,
     }
     setisLoading(true)
       await login(data)
@@ -64,7 +64,7 @@ const LoginPage = (props) => {
         </Anchor>
       </Group>
       <div className="form-group">
-      <PasswordInput onChange={(e) => setPassword(e.target.value)} value={password} placeholder="Your password" id="your-password" />
+      <PasswordInput style={{height:'22px', fontSize: '22px'}} onChange={(e) => setPassword(e.target.value)} value={password} placeholder="Your password" id="your-password" />
           </div>
         </div>
         <div className="form-group">
@@ -80,7 +80,7 @@ const LoginPage = (props) => {
 'Login'
           }</button>
         </div>
-        <Link to='/signup'>Sign Up</Link>
+        <Link style={{textDecoration: 'underline', color:'black'}} to='/signup'>Create a New Account</Link>
       </form>
     </div>
   );

@@ -1,52 +1,23 @@
 import React, { useEffect, useState } from 'react'
-import { Badge, Button, Modal } from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
+import { Badge, Button, Divider, Modal } from '@mantine/core';
 import { Link, useNavigate } from 'react-router-dom';
-import { connect, useDispatch, useSelector } from 'react-redux';
+import { connect } from 'react-redux';
 
-import axios from 'axios';
 import Search from './Search';
-import UploadUI from './UploadUI';
 import getPostList from '../Radux/actions/getPostList';
 import setPostAction from '../Radux/actions/setPostAction';
 import { bindActionCreators } from 'redux';
 import { userDetails } from '../Radux/actions/auth';
 import { performLogOutAction } from '../Radux/actions/auth';
+import '../App.css'
+import { useDisclosure } from '@mantine/hooks';
+import deletePostById from '../Radux/actions/deletePostById';
+import TopPost from './TopPost';
+import Social from './Social';
+import Newletter from './Newletter';
+import { Novu } from '@novu/node'; 
 
-import { forwardRef } from 'react';
-import { IconChevronRight, IconLogout, IconUser } from '@tabler/icons-react';
-import { Group, Avatar, Text, Menu, UnstyledButton } from '@mantine/core';
 
-
-const UserButton = forwardRef(
-  ({ image, name, email, icon, ...others }, ref) => (
-    <UnstyledButton
-      ref={ref}
-      style={{
-        padding: 'var(--mantine-spacing-md)',
-        color: 'var(--mantine-color-text)',
-        borderRadius: 'var(--mantine-radius-sm)',
-      }}
-      {...others}
-    >
-      <Group>
-        <Avatar src={image} radius="xl" />
-
-        <div style={{ flex: 1 }}>
-          <Text size="sm" fw={500}>
-            {name}
-          </Text>
-
-          <Text c="dimmed" size="xs">
-            {email}
-          </Text>
-        </div>
-
-        {icon || <IconChevronRight size="1rem" />}
-      </Group>
-    </UnstyledButton>
-  )
-);
 
 const TimeAgo = ({ timestamp }) => {
   const [timeAgo, setTimeAgo] = useState('');
@@ -83,45 +54,53 @@ const TimeAgo = ({ timestamp }) => {
 };
 
 const PostList = (props) => {
-  const [postData, setPostData] = useState([])
   const [searchInput, setSearchInput] = useState('')
+  const {getPostList, postList, userDetails, userInfo, deletePostById} = props
   const [opened, { open, close }] = useDisclosure(false);
-  const [title, setTitle] = useState('')
-  const [description, setDescription] = useState('')
-  const [tags, setTags] = useState([])
-  const [thumbs, setThumbs] = useState([])
-  const dispatch = useDispatch();
+  const [deletePostId, setDeletePostId] = useState(null)
 
+  const sendMail = (email) => {
+    const novu = new Novu('46f6f6746b09459a6a6d88254e9878ed');
   
+    // Trigger the on-boarding notification
+    novu.trigger('on-boarding-notification', {
+      to: {
+        subscriberId: '48',
+        email: email
+      },
+      payload: {
+        number: '1'
+      }
+    });
+  }
 
-  const {getPostList, postList, setPostAction, savePostResponse, userDetails, userInfo, performLogOutAction} = props
+
+    useEffect(() => {
+      // Initialize Novu with your API key
+     
+    }, []);
+
+
+
 
   useEffect(() => {
     userDetails()
     getPostList()
   }, []);
 
+  const deletePost = (id) => {
+    open()
+    setDeletePostId(id)
+  }
+
+  const DeletePostConfirm = async() => {
+   await deletePostById(deletePostId)
+   await getPostList()
+    close()
+  }
+
   const navigate = useNavigate()
 
-  const handleSubmit = async () => {
-    console.log(tags, 'tagm3')
-    try {
-     await setPostAction(
-        userInfo?.userId,
-        userInfo?.name,
-        title,
-        description,
-        tags,
-        )
-       await close();
-       setTitle('')
-       setTags([])
-      await dispatch(getPostList());
-
-    } catch (error) {
-      console.error('Error submitting post:', error);
-    }
-  };
 
   const getRandomColor = () => {
     const letters = '0123456789ABCDEF';
@@ -138,50 +117,17 @@ const PostList = (props) => {
 
   return (
     <>
-      <Modal opened={opened} onClose={close} fullScreen title="Add New Post">
-        <UploadUI
-          setTitle={setTitle}
-          setDescription={setDescription}
-          setTags={setTags}
-          tags={tags}
-          title={title}
-          description={description}
-          setThumbs={setThumbs}
-          thumbs={thumbs}
-          handleSubmit={handleSubmit} />
+
+    <Modal opened={opened} onClose={close} title="Are you sure you want to delete this post?" centered>
+     <div className='deleteModel'>
+      <Button  color='red' onClick={() => DeletePostConfirm()}>Yes, Delete it</Button>
+      <Button variant='success' onClick={close}>No</Button>
+     </div>
       </Modal>
 
-      <div className='uploadbutton'>
-        <h2 className='trendingheader'>Trashpost</h2>
-        <div className='btnGroup'>
-          {
-            userInfo?.name && 
-            <Button onClick={open} leftSection={<svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024" height="1.5em" width="1.5em" xmlns="http://www.w3.org/2000/svg"><path d="M400 317.7h73.9V656c0 4.4 3.6 8 8 8h60c4.4 0 8-3.6 8-8V317.7H624c6.7 0 10.4-7.7 6.3-12.9L518.3 163a8 8 0 0 0-12.6 0l-112 141.7c-4.1 5.3-.4 13 6.3 13zM878 626h-60c-4.4 0-8 3.6-8 8v154H214V634c0-4.4-3.6-8-8-8h-60c-4.4 0-8 3.6-8 8v198c0 17.7 14.3 32 32 32h684c17.7 0 32-14.3 32-32V634c0-4.4-3.6-8-8-8z"></path></svg>} variant="filled"> Post
-            </Button>
-          }
-        {
-          userInfo?.name ?
-          <Menu withArrow>
-          <Menu.Target>
-            <UserButton
-              image="https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-8.png"
-              name={userInfo?.name}
-              email={userInfo?.email}
-            />
-          </Menu.Target>
-          <Menu.Dropdown>
-         
-          <Menu.Item leftSection={<IconLogout style={{ width: '1rem', height:'1rem' }} />} onClick={() => performLogOutAction()}>
-          Logout
-        </Menu.Item>
-          </Menu.Dropdown>
-        </Menu>
-          :
-          <Button onClick={() => navigate('/login')} style={{marginLeft: '10px'}}>Login</Button>
-        }
-        </div>
-      </div>
       <Search setSearchInput={setSearchInput} />
+      <div className='homePosts'>
+        <div className='homePostList'>
       {
         postList
           ?.filter(
@@ -201,8 +147,17 @@ const PostList = (props) => {
                   <div className='postCategory'>
                     {
                       data?.tags?.map((tagsdata, index) => (
-                        <Badge color={'blue'}>{tagsdata}</Badge>
+                        <Badge variant="default"  color={'#f3f0f0'}>{tagsdata}</Badge>
                       ))
+                    }
+                    {
+                      userInfo?.role_id == 1 && 
+
+                      
+                      <div className='deleteButton' onClick={() => deletePost(data._id)}>
+                        <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M360 184h-8c4.4 0 8-3.6 8-8v8h304v-8c0 4.4 3.6 8 8 8h-8v72h72v-80c0-35.3-28.7-64-64-64H352c-35.3 0-64 28.7-64 64v80h72v-72zm504 72H160c-17.7 0-32 14.3-32 32v32c0 4.4 3.6 8 8 8h60.4l24.7 523c1.6 34.1 29.8 61 63.9 61h454c34.2 0 62.3-26.8 63.9-61l24.7-523H888c4.4 0 8-3.6 8-8v-32c0-17.7-14.3-32-32-32zM731.3 840H292.7l-24.2-512h487l-24.2 512z"></path></svg>
+                        Delete
+                      </div>
                     }
                   </div>
                   {/* <div className='postDescription'> <div
@@ -211,9 +166,28 @@ const PostList = (props) => {
                   
                 </div>
               </div>
+              <Divider style={{marginTop: '10px'}}/>
             </div>
           ))
       }
+
+      </div>
+      <div style={{width: '40%'}}>
+      <div className='topPostContainer'>
+      <TopPost postList={postList}/>
+      </div>
+
+      <Social/>
+
+      <Newletter sendMail= {sendMail}/>
+
+      
+      </div>
+
+      
+      
+
+      </div>
     </>
   )
 }
@@ -232,7 +206,8 @@ const mapDisPatchToProps = (dispatch) => {
       getPostList,
       setPostAction,
       userDetails,
-      performLogOutAction
+      performLogOutAction,
+      deletePostById
     },
     dispatch
   )

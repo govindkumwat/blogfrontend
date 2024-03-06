@@ -43,15 +43,13 @@ const loginRequest = () => ({
 
 
  
-export const signup = (name, username, email, password) => {
+export const signup = (name, username, email, password, role_id) => {
   return (dispatch) => {
     // Dispatch the signup request action
     dispatch(signupRequest());
-
     // Make the API call to signup
-    axios.post(`${baseUrl}/signup`,  name, username, email, password)
+    axios.post(`${baseUrl}/signup`,  name, username, email, password, role_id)
       .then((response) => {
-        console.log(response)
         if(response.status == 201) {
           toast.success('Signup Success, Login with your Credentials')
         } else {

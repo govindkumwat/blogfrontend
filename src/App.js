@@ -8,6 +8,8 @@ import Description from './pages/Description';
 import LoginPage from './pages/Login';
 import SignUpPage from './pages/SignUpPage';
 import toast, { Toaster } from 'react-hot-toast';
+import Navbar from './components/Navbar';
+import AdminDashboard from './pages/AdminDashboard';
 
 
 
@@ -16,12 +18,13 @@ function App() {
   const Navigate = useNavigate()
   return (
    <>
+   <Navbar/>
    <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/about" element={<About />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<SignUpPage />} />
-
+      <Route path='/dashboard' element={<AdminDashboard/>}/>
       {/* Dynamic route with parameter */}
       <Route path="/:id" element={<Description />} />
 

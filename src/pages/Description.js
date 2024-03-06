@@ -1,4 +1,4 @@
-import { Badge, Button, Input, Text, TextInput, Textarea, Avatar, Group  } from '@mantine/core';
+import { Badge, Button, Input, Text, TextInput, Textarea, Avatar, Group, Divider  } from '@mantine/core';
 import { IconAt } from '@tabler/icons-react';
 import axios from 'axios'
 import React, { useEffect, useState } from 'react'
@@ -8,7 +8,9 @@ import postById from '../Radux/actions/postById';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import { userDetails } from '../Radux/actions/auth';
-
+import '../App.css'
+import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet';
 
 const TimeAgo = ({ timestamp }) => {
     const [timeAgo, setTimeAgo] = useState('');
@@ -25,7 +27,7 @@ const TimeAgo = ({ timestamp }) => {
             const hours = Math.floor(minutes / 60);
             const days = Math.floor(hours / 24);
             if (seconds < 60) {
-                setTimeAgo(`${seconds} seconds ago`);
+                setTimeAgo(`Moments ago`);
             } else if (minutes < 60) {
                 setTimeAgo(`${minutes} minutes ago`);
             } else if (hours < 24) {
@@ -45,32 +47,41 @@ const Description = (props) => {
     const [data, setData] = useState([])
     const params = useParams()
 
-    const {postById, detailPost, userDetails} = props 
+    const {postById, detailPost, userDetails, userdetails} = props 
 
-    console.log(userDetails, 'userDetails')
 
     const [state, setState] = useState({
         id: params?.id,
         comment: null,
-        name: userDetails?.data?.name || null,
-        email: userDetails?.data?.email || null,
+        name:  '',
+        email: '',
         commentsList: [],
         savecomment: []
 
     });
 
+    useEffect(() => {
+        setState(prevState => ({
+          ...prevState,
+          id: params?.id,
+          name: userdetails && userdetails?.data?.name || null,
+          email: userdetails && userdetails?.data?.email || null,
+        }));
+      }, [params.id, userdetails]);
+
+  
     const { id, comment, name, email, commentsList } = state;
 
     useEffect(() => {
         postById(params.id)
     },[])
 
-    console.log(detailPost)
+    console.log(userdetails, 'userdetials')
 
    
  
     useEffect(() => {
-        axios(`http://localhost:3001/getcomment/${state?.id}`)
+        axios(`http://localhost:3000/getcomment/${state?.id}`)
             .then((res) => {
                 setState((prevState) => ({
                     ...prevState,
@@ -82,7 +93,7 @@ const Description = (props) => {
 
 
     const handleComments = async () => {
-        const response = await axios.post('http://localhost:3001/savecomments', {
+        const response = await axios.post('http://localhost:3000/savecomments', {
             id,
             comment,
             name,
@@ -102,7 +113,7 @@ const Description = (props) => {
        
 
 
-       await axios(`http://localhost:3001/getcomment/${state?.id}`)
+       await axios(`http://localhost:3000/getcomment/${state?.id}`)
         .then((res) => {
             setState((prevState) => ({
                 ...prevState,
@@ -117,21 +128,36 @@ const Description = (props) => {
         }))
     }
 
+
+    console.log(userdetails, 'userDetails')
+
    
 
     return (
-        <div className='detailContainer'>
+        <>
+
+        <Helmet>
+            <title>{detailPost.title}</title>
+        </Helmet>
+       
+          <div className='detailContainer'>
+            <Link to='/' className='backButton'>
+            <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M21 11L6.414 11 11.707 5.707 10.293 4.293 2.586 12 10.293 19.707 11.707 18.293 6.414 13 21 13z"></path></svg>
+            Back to home
+            </Link>
             <div className='desctitle'>
               {detailPost.title}
             </div>
             <div className='postCategory'>
                     {
                       detailPost?.tags?.map((tagsdata, index) => (
-                        <Badge color={'blue'}>{tagsdata}</Badge>
+                        <Badge variant="default"  color={'#f3f0f0'}>{tagsdata}</Badge>
                       ))
                     }
                   </div>
-            <div className='datenTime'>Posted By: {detailPost.userName} | <TimeAgo timestamp={detailPost?.createdAt} /></div>
+            <div className='datenTime'>Posted By: <strong>{detailPost.userName}</strong>  | <TimeAgo timestamp={detailPost?.createdAt} /></div>
+
+            <Divider/>
 
             <div className='imageContainerDesc'>
 
@@ -142,10 +168,12 @@ const Description = (props) => {
                 {/* {data && data?.data?.filter((data, index) => data?._id == params.id)[0]?.description} */}
             </div>
 
+            <Divider/>
+
             <div className='comment-section'>
                 {
-                    userDetails?.data?.name && 
-                    <Text mt={10} mb={10}>Commenting as <strong>{userDetails?.data?.name}</strong> </Text>
+                    userdetails?.data?.name && 
+                    <Text mt={10} mb={10}>Commenting as <strong>{userdetails?.data?.name}</strong> </Text>
                 }
                 
                 <Textarea
@@ -160,7 +188,7 @@ const Description = (props) => {
                     }}
                 />
                 {
-                    userDetails == null ? 
+                    userdetails == null ? 
                     <>
                     <TextInput mt={'10px'} value={name} placeholder='Name' required onChange={(e) => {
                     setState((prevState) => ({
@@ -206,14 +234,14 @@ const Description = (props) => {
                         alt="Jacob Warnhalter"
                         radius="xl"
                       />
-                      <div>
+                      <div style={{display:'flex', justifyContent: 'center', alignItems:'center', gap:'10px'}}>
                         <Text size="sm"> {data?.name}</Text>
                         <Text size="xs" c="dimmed">
                         <TimeAgo timestamp={data.createdAt} />
                         </Text>
                       </div>
                     </Group>
-                    <Text pl={54} pt="sm" size="sm">
+                    <Text pl={54} pt="sm" size="sm" fw={500}>
                     {data?.comment}
                     </Text>
                   </div>
@@ -222,20 +250,23 @@ const Description = (props) => {
 
 
         </div>
+        </>
+      
     )
 }
 
 const mapStateToProps = (state) => {
     return {
      detailPost: state?.postByIdReducer?.data,
-     userDetails: state?.loginReducer.user
+     userdetails: state?.loginReducer.user
     }
   }
   
   const mapDisPatchToProps = (dispatch) => {
     return bindActionCreators(
       {
-        postById
+        postById,
+        userDetails
       },
       dispatch
     )

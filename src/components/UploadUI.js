@@ -1,4 +1,4 @@
-import { TextInput, TagsInput, Button } from '@mantine/core'
+import { TextInput, TagsInput, Button, Text } from '@mantine/core'
 import React, { useEffect } from 'react'
 import { FileInput } from '@mantine/core'
 import { RichTextEditor, Link } from '@mantine/tiptap';
@@ -39,19 +39,20 @@ const UploadUI = ({setTitle, setDescription, setTags, tags, title, description, 
 
 
   return (
-    <div>
+    <div className='uploadui'>
 
-
+      <Text>Add New Post</Text>
 
       <TextInput
-        label="Title"
-        placeholder="Type Post Title Here"
+        label="Post Title"
+        placeholder="Post title..."
         inputWrapperOrder={['label', 'error', 'input', 'description']}
         onChange={(e) => 
         {
           setTitle(e.target.value)
         }}
         value={title}
+        
       />
 
 <RichTextEditor editor={editor} mt={10}>

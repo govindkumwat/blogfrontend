@@ -21,7 +21,8 @@ const SignUpPage = () => {
         "name" : name,
         "username": username,
         "email" : email,
-        "password" : password 
+        "password" : password ,
+        "role_id" : '2'
     })
     await dispatch(signup(userData))
     setName('')
@@ -82,7 +83,7 @@ const SignUpPage = () => {
         <div className="form-group">
           <button type="submit">{isLoading ? 'Registering..' : 'Register'}</button>
         </div>
-        <Link to='/login'>Login</Link>
+        <Link to='/login'>Already have an account?</Link>
       </form>
     </div>
   );

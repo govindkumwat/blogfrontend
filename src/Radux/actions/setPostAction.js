@@ -21,6 +21,7 @@ const setPostAction = ( userId, userName, title, description, tags) => {
             }
         } catch(error) {
             throw error;
+        
         }
     }
 }

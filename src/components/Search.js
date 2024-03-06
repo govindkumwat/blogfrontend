@@ -5,7 +5,7 @@ const Search = ({setSearchInput}) => {
     <div className="search-container">
     <input type="text" 
     className="search-input"
-    placeholder="Search"  
+    placeholder="Search..."  
     onChange={(e) => setSearchInput(e.target.value)}/>
   </div>
   )
