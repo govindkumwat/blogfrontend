@@ -1,16 +1,20 @@
-import React from 'react'
-import PostList from '../components/PostList'
+import React, { lazy } from 'react'
+// import PostList from '../components/PostList'
 import UpperStrip from '../components/UpperStrip'
 import { Helmet } from 'react-helmet'
+import { Suspense } from 'react'
+const PostList = lazy(() => import('../components/PostList'));
 
 const Home = () => {
   return (
-    <div>
+   <>
       <Helmet>
-        <title>Trashpost</title>
+        <title>ByteBurst</title>
       </Helmet>
+       <Suspense fallback={'Loading'}>
       <PostList/>
-    </div>
+    </Suspense>
+    </>
   )
 }
 

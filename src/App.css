@@ -18,8 +18,6 @@ body {
   justify-content: center;
   align-items: center;
   max-width: 100%;
-
- 
 }
 
 .textPost {
@@ -65,12 +63,23 @@ a  {
 }
 
 .thumbnail {
-  max-width: 10%; /* Make the image fill its container */
-  height: 10%;
-  border-radius: 8px; /* Optional: Add border-radius for rounded corners */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Optional: Add a subtle box shadow */
- 
-  object-fit: cover;
+  max-width: 10%;
+    height: 120px;
+    width: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    object-fit: cover;
+}
+
+.imageupload {
+  margin-top: 10px;
+  display: grid;
+}
+
+.imageupload img {
+  width: 10%;
+  margin-top: 10px;
 }
 
 .postCategory {
@@ -146,7 +155,7 @@ display: flex;
 margin: auto;
 justify-content: space-between;
 align-items: center;
-padding: 0 16%;
+padding: 0 10%;
 
 }
 
@@ -274,6 +283,7 @@ padding: 0 16%;
   cursor: pointer;
   font-size: 16px;
   transition: background-color 0.3s ease;
+  min-width: 20px;
 }
 
 .form-group button:hover {
@@ -532,3 +542,17 @@ padding: 0 16%;
   cursor: pointer;
 }
 
+.imageContainerDesc {
+  margin: auto;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  margin-top: 10px;
+  width: 100%;
+
+}
+
+.imageContainerDesc img {
+  max-width: 100%;
+  border-radius: 10px;
+}

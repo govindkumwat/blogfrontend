@@ -1,4 +1,4 @@
-import { Badge, Button, Input, Text, TextInput, Textarea, Avatar, Group, Divider  } from '@mantine/core';
+import { Badge, Button, Input, Text, TextInput, Textarea, Avatar, Group, Divider, Skeleton } from '@mantine/core';
 import { IconAt } from '@tabler/icons-react';
 import axios from 'axios'
 import React, { useEffect, useState } from 'react'
@@ -14,8 +14,6 @@ import { Helmet } from 'react-helmet';
 
 const TimeAgo = ({ timestamp }) => {
     const [timeAgo, setTimeAgo] = useState('');
-
-
 
     useEffect(() => {
         const calculateTimeAgo = () => {
@@ -44,42 +42,69 @@ const TimeAgo = ({ timestamp }) => {
     return <span>{timeAgo}</span>;
 };
 const Description = (props) => {
-    const [data, setData] = useState([])
     const params = useParams()
-
-    const {postById, detailPost, userDetails, userdetails} = props 
-
+    const { postById, detailPost, userDetails, userdetails } = props
 
     const [state, setState] = useState({
         id: params?.id,
         comment: null,
-        name:  '',
+        name: '',
         email: '',
         commentsList: [],
-        savecomment: []
-
+        savecomment: [],
+        loading: false
     });
 
     useEffect(() => {
         setState(prevState => ({
-          ...prevState,
-          id: params?.id,
-          name: userdetails && userdetails?.data?.name || null,
-          email: userdetails && userdetails?.data?.email || null,
+            ...prevState,
+            id: params?.id,
+            name: userdetails && userdetails?.data?.name || null,
+            email: userdetails && userdetails?.data?.email || null,
         }));
-      }, [params.id, userdetails]);
+    }, [params.id, userdetails]);
 
-  
-    const { id, comment, name, email, commentsList } = state;
+    const { id, comment, name, email, commentsList, loading } = state;
 
     useEffect(() => {
-        postById(params.id)
-    },[])
+        // Define a variable to track whether the component is mounted
+        let isMounted = true;
 
-    console.log(userdetails, 'userdetials')
+        // Inside an async function to use await
+        const fetchData = async () => {
+            try {
+                setState((prevState) => ({
+                    ...prevState,
+                    loading: true
+                }));
 
-   
- 
+                // Fetch data
+                const result = await postById(params.id);
+
+                // Check if the component is still mounted before updating state
+                if (isMounted) {
+                    // Update state with the fetched data
+                    setState((prevState) => ({
+                        ...prevState,
+                        loading: false,
+                        data: result  // Assuming there is a data property in the result
+                    }));
+                }
+            } catch (error) {
+                console.error("Error fetching data:", error);
+                // Handle error state if needed
+            }
+        };
+        // Call the fetchData function
+        fetchData();
+        // Cleanup function to be executed when the component is unmounted
+        return () => {
+            isMounted = false;
+        };
+    }, [params.id]);  // Include any dependencies that should trigger a re-fetch
+
+
+
     useEffect(() => {
         axios(`http://localhost:3000/getcomment/${state?.id}`)
             .then((res) => {
@@ -109,17 +134,14 @@ const Description = (props) => {
             email: null,
 
         }))
-       
-       
 
-
-       await axios(`http://localhost:3000/getcomment/${state?.id}`)
-        .then((res) => {
-            setState((prevState) => ({
-                ...prevState,
-                commentsList: res?.data
-            }))
-        })
+        await axios(`http://localhost:3000/getcomment/${state?.id}`)
+            .then((res) => {
+                setState((prevState) => ({
+                    ...prevState,
+                    commentsList: res?.data
+                }))
+            })
         setState((prevState) => ({
             ...prevState,
             comment: '',
@@ -128,149 +150,190 @@ const Description = (props) => {
         }))
     }
 
-
-    console.log(userdetails, 'userDetails')
-
-   
-
     return (
         <>
 
-        <Helmet>
-            <title>{detailPost.title}</title>
-        </Helmet>
-       
-          <div className='detailContainer'>
-            <Link to='/' className='backButton'>
-            <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M21 11L6.414 11 11.707 5.707 10.293 4.293 2.586 12 10.293 19.707 11.707 18.293 6.414 13 21 13z"></path></svg>
-            Back to home
-            </Link>
-            <div className='desctitle'>
-              {detailPost.title}
-            </div>
-            <div className='postCategory'>
+            <Helmet>
+                <title>{detailPost?.title}</title>
+            </Helmet>
+
+            <div className='detailContainer'>
+                <Link to='/' className='backButton'>
+                    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M21 11L6.414 11 11.707 5.707 10.293 4.293 2.586 12 10.293 19.707 11.707 18.293 6.414 13 21 13z"></path></svg>
+                    Back to home
+                </Link>
+                <div className='desctitle'>
+
+
+                    {loading ? <Skeleton height={50} mt={6} /> : detailPost.title}
+                </div>
+                {
+                    loading ? <Skeleton height={10} width={100} mt={6} mb={6} />
+                        :
+                        <div className='datenTime'>Posted By: <strong>{detailPost.userName}</strong>  | <TimeAgo timestamp={detailPost?.createdAt} /></div>
+                }
+
+                <Divider />
+                {
+                    loading ? <Skeleton height={300} mt={6} mb={6} /> :
+                        <div className='imageContainerDesc'>
+                            <img src={detailPost.thumbs} />
+                        </div>
+                }
+
+                <div className='descBody'>
                     {
-                      detailPost?.tags?.map((tagsdata, index) => (
-                        <Badge variant="default"  color={'#f3f0f0'}>{tagsdata}</Badge>
-                      ))
+                        loading ?
+                            <>
+                                <Skeleton height={16} mt={6} mb={6} />
+                                <Skeleton height={16} mt={6} mb={6} />
+                                <Skeleton height={16} mt={6} mb={6} />
+                                <Skeleton height={16} mt={6} mb={6} />
+                                <Skeleton height={16} mt={6} mb={6} width={500} />
+                                <Skeleton height={16} mt={6} mb={6} />
+                                <Skeleton height={16} mt={6} mb={6} />
+                                <Skeleton height={16} mt={6} mb={6} width={300} />
+                                <Skeleton height={16} mt={6} mb={6} />
+                                <Skeleton height={16} mt={6} mb={6} />
+                                <Skeleton height={16} mt={6} mb={6} />
+                                <Skeleton height={16} mt={6} mb={6} width={600} />
+                                <Skeleton height={16} mt={6} mb={6} />
+                                <Skeleton height={16} mt={6} mb={6} />
+                                <Skeleton height={16} mt={6} mb={6} />
+                                <Skeleton height={16} mt={6} mb={6} width={300} />
+                                <Skeleton height={16} mt={6} mb={6} />
+                                <Skeleton height={16} mt={6} mb={6} />
+                                <Skeleton height={16} mt={6} mb={6} />
+                                <Skeleton height={16} mt={6} mb={6} />
+                                <Skeleton height={16} mt={6} mb={6} />
+                            </>
+                            :
+                            <div
+                                dangerouslySetInnerHTML={{ __html: detailPost?.description }} />
                     }
-                  </div>
-            <div className='datenTime'>Posted By: <strong>{detailPost.userName}</strong>  | <TimeAgo timestamp={detailPost?.createdAt} /></div>
+                </div>
+                <Divider />
 
-            <Divider/>
-
-            <div className='imageContainerDesc'>
-
-            </div>
-            <div className='descBody'>
-            <div
-      dangerouslySetInnerHTML={{__html: detailPost?.description}}/>
-                {/* {data && data?.data?.filter((data, index) => data?._id == params.id)[0]?.description} */}
-            </div>
-
-            <Divider/>
-
-            <div className='comment-section'>
                 {
-                    userdetails?.data?.name && 
-                    <Text mt={10} mb={10}>Commenting as <strong>{userdetails?.data?.name}</strong> </Text>
-                }
-                
-                <Textarea
-                    value={comment}
-                    size="md"
-                    placeholder="Enter Comment Here"
-                    onChange={(e) => {
-                        setState((prevState) => ({
-                            ...prevState,
-                            comment: e.target.value
-                        }))
-                    }}
-                />
-                {
-                    userdetails == null ? 
-                    <>
-                    <TextInput mt={'10px'} value={name} placeholder='Name' required onChange={(e) => {
-                    setState((prevState) => ({
-                        ...prevState,
-                        name: e.target.value
-                    }))
-                }} />
-                <Input
-                    mt={'10px'}
-                    placeholder="Email"
-                    value={email}
-                    leftSection={<IconAt size={16} />} onChange={(e) => {
-
-                        setState((prevState) => ({
-                            ...prevState,
-                            email: e.target.value
-                        }))
-                    }} />
-                    </>
+                    loading ? 
+                    <div style={{display:'flex', gap: '10px'}}>
+                         <Skeleton height={16} mt={6} mb={6} width={60} />
+                         <Skeleton height={16} mt={6} mb={6} width={60} />
+                         <Skeleton height={16} mt={6} mb={6} width={60} />
+                    </div>
                     :
-                    null
+                    <div className='postCategory'>
+                    {
+                        detailPost?.tags?.map((tagsdata, index) => (
+                            <Badge variant="default" color={'#f3f0f0'}>{tagsdata}</Badge>
+                        ))
+                    }
+                </div>
                 }
-                
-                <Button mt={10} loaderProps={{ type: 'dots' }} onClick={() =>
-                    handleComments()
-                }>
-                    Submit
-                </Button>
+
+               
+
+                <div className='comment-section'>
+                    {
+                        userdetails?.data?.name &&
+                        <Text mt={10} mb={10}>Commenting as <strong>{userdetails?.data?.name}</strong> </Text>
+                    }
+
+                    <Textarea
+                        value={comment}
+                        size="md"
+                        placeholder="Enter Comment Here"
+                        onChange={(e) => {
+                            setState((prevState) => ({
+                                ...prevState,
+                                comment: e.target.value
+                            }))
+                        }}
+                    />
+                    {
+                        userdetails == null ?
+                            <>
+                                <TextInput mt={'10px'} value={name} placeholder='Name' required onChange={(e) => {
+                                    setState((prevState) => ({
+                                        ...prevState,
+                                        name: e.target.value
+                                    }))
+                                }} />
+                                <Input
+                                    mt={'10px'}
+                                    placeholder="Email"
+                                    value={email}
+                                    leftSection={<IconAt size={16} />} onChange={(e) => {
+
+                                        setState((prevState) => ({
+                                            ...prevState,
+                                            email: e.target.value
+                                        }))
+                                    }} />
+                            </>
+                            :
+                            null
+                    }
+
+                    <Button mt={10} loaderProps={{ type: 'dots' }} onClick={() =>
+                        handleComments()
+                    }>
+                        Submit
+                    </Button>
+
+                </div>
+                {
+                    commentsList.length > 0 &&
+                    <div className='comemnt-heading'>Comments</div>
+                }
+
+
+                {
+                    commentsList && commentsList?.map((data, index) => (
+                        <div style={{ border: '1px solid #d2d2d2', borderRadius: '10px', padding: '6px', marginBottom: '10px' }}>
+                            <Group >
+                                <Avatar
+                                    src="https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-1.png"
+                                    alt="Jacob Warnhalter"
+                                    radius="xl"
+                                />
+                                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px' }}>
+                                    <Text size="sm"> {data?.name}</Text>
+                                    <Text size="xs" c="dimmed">
+                                        <TimeAgo timestamp={data.createdAt} />
+                                    </Text>
+                                </div>
+                            </Group>
+                            <Text pl={54} pt="sm" size="sm" fw={500}>
+                                {data?.comment}
+                            </Text>
+                        </div>
+                    ))
+                }
+
 
             </div>
-            {
-                commentsList.length > 0 && 
-                <div className='comemnt-heading'>Comments</div>
-            }
-            
-
-            {
-                commentsList && commentsList?.map((data, index) => (
-                    <div style={{border: '1px solid #d2d2d2', borderRadius: '10px', padding: '6px', marginBottom: '10px'}}>
-                    <Group >
-                      <Avatar
-                        src="https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-1.png"
-                        alt="Jacob Warnhalter"
-                        radius="xl"
-                      />
-                      <div style={{display:'flex', justifyContent: 'center', alignItems:'center', gap:'10px'}}>
-                        <Text size="sm"> {data?.name}</Text>
-                        <Text size="xs" c="dimmed">
-                        <TimeAgo timestamp={data.createdAt} />
-                        </Text>
-                      </div>
-                    </Group>
-                    <Text pl={54} pt="sm" size="sm" fw={500}>
-                    {data?.comment}
-                    </Text>
-                  </div>
-                ))
-            }
-
-
-        </div>
         </>
-      
+
     )
 }
 
 const mapStateToProps = (state) => {
     return {
-     detailPost: state?.postByIdReducer?.data,
-     userdetails: state?.loginReducer.user
+        detailPost: state?.postByIdReducer?.data,
+        userdetails: state?.loginReducer.user
     }
-  }
-  
-  const mapDisPatchToProps = (dispatch) => {
-    return bindActionCreators(
-      {
-        postById,
-        userDetails
-      },
-      dispatch
-    )
-  }
-  
+}
 
-export default connect(mapStateToProps, mapDisPatchToProps) (Description)
+const mapDisPatchToProps = (dispatch) => {
+    return bindActionCreators(
+        {
+            postById,
+            userDetails
+        },
+        dispatch
+    )
+}
+
+
+export default connect(mapStateToProps, mapDisPatchToProps)(Description)

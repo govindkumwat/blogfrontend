@@ -14,9 +14,9 @@ import Dropcursor from '@tiptap/extension-dropcursor'
 
 
 
-const content =''
+const content = ''
 
-const UploadUI = ({setTitle, setDescription, setTags, tags, title, description, setThumbs, thumbs, handleSubmit}) => {
+const UploadUI = ({ setTitle, setDescription, setTags, tags, title, description, setThumbs, thumbs, handleSubmit, convertToBase64 }) => {
 
   const editor = useEditor({
     extensions: [
@@ -43,63 +43,64 @@ const UploadUI = ({setTitle, setDescription, setTags, tags, title, description, 
 
       <Text>Add New Post</Text>
 
-      <TextInput
-        label="Post Title"
-        placeholder="Post title..."
-        inputWrapperOrder={['label', 'error', 'input', 'description']}
-        onChange={(e) => 
-        {
-          setTitle(e.target.value)
-        }}
-        value={title}
-        
-      />
+      <form onSubmit={handleSubmit} encType="multipart/form-data">
 
-<RichTextEditor editor={editor} mt={10}>
-      <RichTextEditor.Toolbar sticky stickyOffset={60}>
-        <RichTextEditor.ControlsGroup>
-          <RichTextEditor.Bold />
-          <RichTextEditor.Italic />
-          <RichTextEditor.Underline />
-          <RichTextEditor.Strikethrough />
-          <RichTextEditor.ClearFormatting />
-          <RichTextEditor.Highlight />
-          <RichTextEditor.Code />
-        </RichTextEditor.ControlsGroup>
+        <TextInput
+          label="Post Title"
+          placeholder="Post title..."
+          inputWrapperOrder={['label', 'error', 'input', 'description']}
+          onChange={(e) => {
+            setTitle(e.target.value)
+          }}
+          value={title}
 
-        <RichTextEditor.ControlsGroup>
-          <RichTextEditor.H1 />
-          <RichTextEditor.H2 />
-          <RichTextEditor.H3 />
-          <RichTextEditor.H4 />
-        </RichTextEditor.ControlsGroup>
-        
-        <RichTextEditor.ControlsGroup>
-          <RichTextEditor.Blockquote />
-          <RichTextEditor.Hr />
-          <RichTextEditor.BulletList />
-          <RichTextEditor.OrderedList />
-          <RichTextEditor.Subscript />
-          <RichTextEditor.Superscript />
-        </RichTextEditor.ControlsGroup>
+        />
 
-        <RichTextEditor.ControlsGroup>
-          <RichTextEditor.Link />
-          <RichTextEditor.Unlink />
-        </RichTextEditor.ControlsGroup>
+        <RichTextEditor editor={editor} mt={10}>
+          <RichTextEditor.Toolbar sticky stickyOffset={60}>
+            <RichTextEditor.ControlsGroup>
+              <RichTextEditor.Bold />
+              <RichTextEditor.Italic />
+              <RichTextEditor.Underline />
+              <RichTextEditor.Strikethrough />
+              <RichTextEditor.ClearFormatting />
+              <RichTextEditor.Highlight />
+              <RichTextEditor.Code />
+            </RichTextEditor.ControlsGroup>
 
-        <RichTextEditor.ControlsGroup>
-          <RichTextEditor.AlignLeft />
-          <RichTextEditor.AlignCenter />
-          <RichTextEditor.AlignJustify />
-          <RichTextEditor.AlignRight />
-        </RichTextEditor.ControlsGroup>
-      </RichTextEditor.Toolbar>
+            <RichTextEditor.ControlsGroup>
+              <RichTextEditor.H1 />
+              <RichTextEditor.H2 />
+              <RichTextEditor.H3 />
+              <RichTextEditor.H4 />
+            </RichTextEditor.ControlsGroup>
 
-      <RichTextEditor.Content />
-    </RichTextEditor>
+            <RichTextEditor.ControlsGroup>
+              <RichTextEditor.Blockquote />
+              <RichTextEditor.Hr />
+              <RichTextEditor.BulletList />
+              <RichTextEditor.OrderedList />
+              <RichTextEditor.Subscript />
+              <RichTextEditor.Superscript />
+            </RichTextEditor.ControlsGroup>
 
-      {/* <TextInput
+            <RichTextEditor.ControlsGroup>
+              <RichTextEditor.Link />
+              <RichTextEditor.Unlink />
+            </RichTextEditor.ControlsGroup>
+
+            <RichTextEditor.ControlsGroup>
+              <RichTextEditor.AlignLeft />
+              <RichTextEditor.AlignCenter />
+              <RichTextEditor.AlignJustify />
+              <RichTextEditor.AlignRight />
+            </RichTextEditor.ControlsGroup>
+          </RichTextEditor.Toolbar>
+
+          <RichTextEditor.Content />
+        </RichTextEditor>
+
+        {/* <TextInput
         label="Post Description"
         placeholder="Type Post Description Here"
         inputWrapperOrder={['label', 'error', 'input', 'description']}
@@ -110,21 +111,25 @@ const UploadUI = ({setTitle, setDescription, setTags, tags, title, description, 
           value={description}
       /> */}
 
-      <TagsInput label="Press Enter to submit a tag" placeholder="Enter tag" 
-       data={[]} value={tags} onChange={setTags}
-      />
+        <TagsInput label="Press Enter to submit a tag" placeholder="Enter tag"
+          data={[]} value={tags} onChange={setTags}
+        />
+        <div className='imageupload'>
+        <input type='file' label="Upload Image" mt={10} placeholder='Upload Image' onChange={(e) => convertToBase64(e)} />
 
-      <FileInput label="Upload Image" mt={10} placeholder='Upload Image' multiple value={thumbs} onChange={setThumbs} />
+        {
+          thumbs.length > 0 && 
+          <img src={thumbs} alt='preview Image'/>
+        }
+        
+        </div>
+        <div className='postButton'>
+          <Button mt={10} type='submit' leftSection={<svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024" height="1.5em" width="1.5em" xmlns="http://www.w3.org/2000/svg"><path d="M400 317.7h73.9V656c0 4.4 3.6 8 8 8h60c4.4 0 8-3.6 8-8V317.7H624c6.7 0 10.4-7.7 6.3-12.9L518.3 163a8 8 0 0 0-12.6 0l-112 141.7c-4.1 5.3-.4 13 6.3 13zM878 626h-60c-4.4 0-8 3.6-8 8v154H214V634c0-4.4-3.6-8-8-8h-60c-4.4 0-8 3.6-8 8v198c0 17.7 14.3 32 32 32h684c17.7 0 32-14.3 32-32V634c0-4.4-3.6-8-8-8z"></path></svg>} variant="filled">Post</Button>
+        </div>
 
-      <div className='postButton'>
-      <Button mt={10} onClick={handleSubmit} leftSection={<svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024" height="1.5em" width="1.5em" xmlns="http://www.w3.org/2000/svg"><path d="M400 317.7h73.9V656c0 4.4 3.6 8 8 8h60c4.4 0 8-3.6 8-8V317.7H624c6.7 0 10.4-7.7 6.3-12.9L518.3 163a8 8 0 0 0-12.6 0l-112 141.7c-4.1 5.3-.4 13 6.3 13zM878 626h-60c-4.4 0-8 3.6-8 8v154H214V634c0-4.4-3.6-8-8-8h-60c-4.4 0-8 3.6-8 8v198c0 17.7 14.3 32 32 32h684c17.7 0 32-14.3 32-32V634c0-4.4-3.6-8-8-8z"></path></svg>} variant="filled">Post</Button>
-
-          
-      </div>
-
-     
 
 
+      </form>
 
     </div>
   )

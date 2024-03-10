@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react'
-import { Badge, Button, Divider, Modal } from '@mantine/core';
+import React, { lazy, useEffect, useState } from 'react'
+import { Badge, Button, Divider, Modal, Pagination, Skeleton } from '@mantine/core';
 import { Link, useNavigate } from 'react-router-dom';
 import { connect } from 'react-redux';
 
@@ -12,10 +12,13 @@ import { performLogOutAction } from '../Radux/actions/auth';
 import '../App.css'
 import { useDisclosure } from '@mantine/hooks';
 import deletePostById from '../Radux/actions/deletePostById';
-import TopPost from './TopPost';
 import Social from './Social';
 import Newletter from './Newletter';
 import { Novu } from '@novu/node'; 
+import { useSpring, animated, useInView } from '@react-spring/web'
+import { Suspense } from 'react';
+import Loading from './Loading';
+const TopPost = lazy(() => import('./TopPost'));
 
 
 
@@ -27,7 +30,6 @@ const TimeAgo = ({ timestamp }) => {
       const now = new Date();
       const createdAt = new Date(timestamp);
       const timeDifference = now - createdAt;
-
       const seconds = Math.floor(timeDifference / 1000);
       const minutes = Math.floor(seconds / 60);
       const hours = Math.floor(minutes / 60);
@@ -58,6 +60,25 @@ const PostList = (props) => {
   const {getPostList, postList, userDetails, userInfo, deletePostById} = props
   const [opened, { open, close }] = useDisclosure(false);
   const [deletePostId, setDeletePostId] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [page, setPage] = useState(1)
+
+  const [ref, springs] = useInView(
+    () => ({
+      from: {
+        opacity: 0,
+        y: 100,
+        
+      },
+      to: {
+        opacity: 1,
+        y: 0,
+      },
+    }),
+    {
+      // rootMargin: '-40% 0%',
+    }
+  )
 
   const sendMail = (email) => {
     const novu = new Novu('46f6f6746b09459a6a6d88254e9878ed');
@@ -66,7 +87,7 @@ const PostList = (props) => {
     novu.trigger('on-boarding-notification', {
       to: {
         subscriberId: '48',
-        email: email
+        email: email,
       },
       payload: {
         number: '1'
@@ -74,19 +95,35 @@ const PostList = (props) => {
     });
   }
 
-
-    useEffect(() => {
-      // Initialize Novu with your API key
-     
-    }, []);
-
-
-
-
   useEffect(() => {
-    userDetails()
-    getPostList()
-  }, []);
+    setLoading(true)
+    const fetchData = async () => {
+        try {
+            await userDetails();
+            await getPostList(page);
+        } catch (error) {
+            console.error("Error fetching data:", error);
+            // Handle error state if needed
+        }
+    };
+
+    fetchData();
+    setLoading(false)
+}, []);
+
+
+useEffect(() => {
+  const fetchData = async () => {
+    try {
+        await getPostList(page);
+    } catch (error) {
+        console.error("Error fetching data:", error);
+        // Handle error state if needed
+    }
+};
+
+fetchData();
+}, [page])
 
   const deletePost = (id) => {
     open()
@@ -115,6 +152,7 @@ const PostList = (props) => {
     navigate('/profile')
   }
 
+
   return (
     <>
 
@@ -129,22 +167,33 @@ const PostList = (props) => {
       <div className='homePosts'>
         <div className='homePostList'>
       {
-        postList
+        postList?.posts
           ?.filter(
             (data) =>
               data?.title?.toLowerCase()?.includes(searchInput.toLowerCase()) || data?.description?.toLowerCase()?.includes(searchInput.toLowerCase())
           )
           ?.sort((a, b) => new Date(b?.createdAt) - new Date(a?.createdAt))
           .map((data, index) => (
-            <div className='postList'>
+            <div className='postList' ref={ref} style={{...springs}}>
               <div className='post'>
-                <img className='thumbnail' src={`https://picsum.photos/200/300?random=${index}`} />
+
+                  <img className='thumbnail' src={data?.thumbs} alt={data.title}/>
+              
+               
                 <div className='textPost'>
-                  <div className='datenTime'>Posted By: {data?.userName} | <TimeAgo timestamp={data?.createdAt} /></div>
+                
+                    <div className='datenTime'>Posted By: {data?.userName} | <TimeAgo timestamp={data?.createdAt} /></div>
+                
+                 
                   <Link to={{ pathname: `${data._id}`, state: { postList } }}>
-                    <div className='postTitle'>{data?.title}</div>
+                    
+                      <div className='postTitle'>{data?.title}</div>
+
+                  
                   </Link>
-                  <div className='postCategory'>
+                  {
+                   
+                    <div className='postCategory'>
                     {
                       data?.tags?.map((tagsdata, index) => (
                         <Badge variant="default"  color={'#f3f0f0'}>{tagsdata}</Badge>
@@ -160,6 +209,9 @@ const PostList = (props) => {
                       </div>
                     }
                   </div>
+
+                  }
+                 
                   {/* <div className='postDescription'> <div
                     dangerouslySetInnerHTML={{ __html: data?.description }}
                   /></div> */}
@@ -170,11 +222,16 @@ const PostList = (props) => {
             </div>
           ))
       }
+      
+              <Pagination total={postList?.pageInfo?.totalPages} value={page} onChange={setPage} style={{marginTop: '10px', paddingLeft: "16%", marginBottom: '20px'}}/>
 
       </div>
       <div style={{width: '40%'}}>
       <div className='topPostContainer'>
-      <TopPost postList={postList}/>
+        <Suspense  fallback = {<Loading/>}>
+        <TopPost postList={postList?.posts}/>
+        </Suspense>
+     
       </div>
 
       <Social/>

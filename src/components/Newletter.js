@@ -7,7 +7,7 @@ const Newletter = ({sendMail}) => {
     <div className='newsletterContainer'>
         <div className='newsletterHeading'>Newsletter</div>
       <input className='newsletterinput' onChange={(e) => setGetEmail(e.target.value)} placeholder='Enter your email'/>
-      <button className='newsletterbutton' onClick={sendMail(getemail)}>Subscribe</button>
+      <button className='newsletterbutton' onClick={() => sendMail(getemail)}>Subscribe</button>
     </div>
   )
 }

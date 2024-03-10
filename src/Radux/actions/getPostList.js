@@ -3,10 +3,10 @@ import { getApiCall } from "../utils/Action"
 import { baseUrl } from "../../apiConstant"
 
 export const GET_ALL_POST = 'GET_ALL_POST'
-const getPostList = () => {
+const getPostList = (page) => {
     return async(dispatch) => {
         try{
-            const response =  await axios.get(`${baseUrl}/posts`)
+            const response =  await axios.get(`${baseUrl}/posts?page=${page}`)
             if(response.status == 200) {
                 return dispatch({
                     type: GET_ALL_POST,
