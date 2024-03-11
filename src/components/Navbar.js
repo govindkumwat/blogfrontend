@@ -93,7 +93,7 @@ const Navbar = (props) => {
            await close();
            setTitle('')
            setTags([])
-          await dispatch(getPostList());
+          await dispatch(getPostList(1, '', ''));
     
         } catch (error) {
           console.error('Error submitting post:', error);
@@ -133,7 +133,7 @@ const Navbar = (props) => {
           <Menu withArrow>
           <Menu.Target>
             <UserButton
-              image="https://cdn-icons-png.flaticon.com/512/219/219988.png"
+              image="https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-2.png"
               name={userInfo?.name}
               email={userInfo?.email}
             />

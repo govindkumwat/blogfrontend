@@ -1,5 +1,5 @@
 import React, { lazy, useEffect, useState } from 'react'
-import { Badge, Button, Divider, Modal, Pagination, Skeleton } from '@mantine/core';
+import { Badge, Button, Chip, Divider, Modal, Pagination, Skeleton, Text } from '@mantine/core';
 import { Link, useNavigate } from 'react-router-dom';
 import { connect } from 'react-redux';
 
@@ -18,9 +18,8 @@ import { Novu } from '@novu/node';
 import { useSpring, animated, useInView } from '@react-spring/web'
 import { Suspense } from 'react';
 import Loading from './Loading';
+import { IconX } from '@tabler/icons-react';
 const TopPost = lazy(() => import('./TopPost'));
-
-
 
 const TimeAgo = ({ timestamp }) => {
   const [timeAgo, setTimeAgo] = useState('');
@@ -62,6 +61,7 @@ const PostList = (props) => {
   const [deletePostId, setDeletePostId] = useState(null)
   const [loading, setLoading] = useState(false)
   const [page, setPage] = useState(1)
+  const [selectedTag, setSelectedTag] = useState('')
 
   const [ref, springs] = useInView(
     () => ({
@@ -100,7 +100,7 @@ const PostList = (props) => {
     const fetchData = async () => {
         try {
             await userDetails();
-            await getPostList(page);
+            await getPostList(page, searchInput?.toLowerCase());
         } catch (error) {
             console.error("Error fetching data:", error);
             // Handle error state if needed
@@ -115,7 +115,7 @@ const PostList = (props) => {
 useEffect(() => {
   const fetchData = async () => {
     try {
-        await getPostList(page);
+        await getPostList(page, searchInput, selectedTag);
     } catch (error) {
         console.error("Error fetching data:", error);
         // Handle error state if needed
@@ -125,6 +125,34 @@ useEffect(() => {
 fetchData();
 }, [page])
 
+useEffect(() => {
+  const fetchData = async () => {
+    try {
+        await getPostList(page, searchInput, selectedTag);
+    } catch (error) {
+        console.error("Error fetching data:", error);
+        // Handle error state if needed
+    }
+};
+
+fetchData();
+}, [searchInput, selectedTag])
+
+useEffect(() => {
+  const fetchData = async () => {
+    try {
+        await getPostList('', '', selectedTag);
+    } catch (error) {
+        console.error("Error fetching data:", error);
+        // Handle error state if needed
+    }
+};
+
+fetchData();
+}, [ selectedTag])
+
+
+
   const deletePost = (id) => {
     open()
     setDeletePostId(id)
@@ -132,7 +160,7 @@ fetchData();
 
   const DeletePostConfirm = async() => {
    await deletePostById(deletePostId)
-   await getPostList()
+   await getPostList(page, searchInput, selectedTag)
     close()
   }
 
@@ -164,14 +192,25 @@ fetchData();
       </Modal>
 
       <Search setSearchInput={setSearchInput} />
+      {
+          selectedTag && 
+          <div className='filterchips'>
+          <Text fw={500}  >Displaying Results Filtered by Tag:</Text>   <Chip
+      icon={<IconX style={{ width: 'rem(16)', height: 'rem(16)' }} />}
+      color="blue"
+      variant="filled"
+      defaultChecked
+      onChange={() => setSelectedTag('')}
+    >
+      {selectedTag}
+    </Chip>
+          </div>
+        }
       <div className='homePosts'>
+       
         <div className='homePostList'>
       {
         postList?.posts
-          ?.filter(
-            (data) =>
-              data?.title?.toLowerCase()?.includes(searchInput.toLowerCase()) || data?.description?.toLowerCase()?.includes(searchInput.toLowerCase())
-          )
           ?.sort((a, b) => new Date(b?.createdAt) - new Date(a?.createdAt))
           .map((data, index) => (
             <div className='postList' ref={ref} style={{...springs}}>
@@ -196,7 +235,7 @@ fetchData();
                     <div className='postCategory'>
                     {
                       data?.tags?.map((tagsdata, index) => (
-                        <Badge variant="default"  color={'#f3f0f0'}>{tagsdata}</Badge>
+                        <Badge onClick={(e) => setSelectedTag(e.target.innerText) } style={{cursor: 'pointer'}} variant="default"  color={'#f3f0f0'}>{tagsdata}</Badge>
                       ))
                     }
                     {
