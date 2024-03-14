@@ -3,6 +3,7 @@ import getPostReducers from "./getPostReducers";
 import setPostReducers from "./setPostReducers";
 import loginReducer from "./loginReducers";
 import postByIdReducer from "./postByIdReducer";
+import getTopPostReducers from "./getTopPostReducers";
 
 const createReducer = (asyncReducers) => {
   const appReducer = combineReducers({
@@ -10,6 +11,7 @@ const createReducer = (asyncReducers) => {
     setPostReducers,
     loginReducer,
     postByIdReducer,
+    getTopPostReducers,
     ...asyncReducers
   });
 
