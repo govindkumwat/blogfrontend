@@ -12,7 +12,6 @@ import Navbar from './components/Navbar';
 import AdminDashboard from './pages/AdminDashboard';
 
 
-
 function App() {
   const isAuthenticated = localStorage.getItem('token')
   const Navigate = useNavigate()

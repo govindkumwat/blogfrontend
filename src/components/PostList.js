@@ -1,5 +1,5 @@
 import React, { lazy, useEffect, useState } from 'react'
-import { Badge, Button, Divider, Modal, Pagination, Skeleton } from '@mantine/core';
+import { Badge, Button, Chip, Divider, Modal, Pagination, Skeleton, Text } from '@mantine/core';
 import { Link, useNavigate } from 'react-router-dom';
 import { connect } from 'react-redux';
 
@@ -18,9 +18,8 @@ import { Novu } from '@novu/node';
 import { useSpring, animated, useInView } from '@react-spring/web'
 import { Suspense } from 'react';
 import Loading from './Loading';
+import { IconX } from '@tabler/icons-react';
 const TopPost = lazy(() => import('./TopPost'));
-
-
 
 const TimeAgo = ({ timestamp }) => {
   const [timeAgo, setTimeAgo] = useState('');
@@ -62,6 +61,7 @@ const PostList = (props) => {
   const [deletePostId, setDeletePostId] = useState(null)
   const [loading, setLoading] = useState(false)
   const [page, setPage] = useState(1)
+  const [selectedTag, setSelectedTag] = useState('')
 
   const [ref, springs] = useInView(
     () => ({
@@ -98,13 +98,13 @@ const PostList = (props) => {
   useEffect(() => {
     setLoading(true)
     const fetchData = async () => {
-      try {
-        await userDetails();
-        await getPostList(page);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        // Handle error state if needed
-      }
+        try {
+            await userDetails();
+            await getPostList(page, searchInput?.toLowerCase());
+        } catch (error) {
+            console.error("Error fetching data:", error);
+            // Handle error state if needed
+        }
     };
 
     fetchData();
@@ -112,11 +112,11 @@ const PostList = (props) => {
   }, []);
 
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        await getPostList(page);
-      } catch (error) {
+useEffect(() => {
+  const fetchData = async () => {
+    try {
+        await getPostList(page, searchInput, selectedTag);
+    } catch (error) {
         console.error("Error fetching data:", error);
         // Handle error state if needed
       }
@@ -125,14 +125,42 @@ const PostList = (props) => {
     fetchData();
   }, [page])
 
+useEffect(() => {
+  const fetchData = async () => {
+    try {
+        await getPostList(page, searchInput, selectedTag);
+    } catch (error) {
+        console.error("Error fetching data:", error);
+        // Handle error state if needed
+    }
+};
+
+fetchData();
+}, [searchInput, selectedTag])
+
+useEffect(() => {
+  const fetchData = async () => {
+    try {
+        await getPostList('', '', selectedTag);
+    } catch (error) {
+        console.error("Error fetching data:", error);
+        // Handle error state if needed
+    }
+};
+
+fetchData();
+}, [ selectedTag])
+
+
+
   const deletePost = (id) => {
     open()
     setDeletePostId(id)
   }
 
-  const DeletePostConfirm = async () => {
-    await deletePostById(deletePostId)
-    await getPostList()
+  const DeletePostConfirm = async() => {
+   await deletePostById(deletePostId)
+   await getPostList(page, searchInput, selectedTag)
     close()
   }
 
@@ -162,42 +190,66 @@ const PostList = (props) => {
         </div>
       </Modal>
       <Search setSearchInput={setSearchInput} />
+      {
+          selectedTag && 
+          <div className='filterchips'>
+          <Text fw={500}  >Displaying Results Filtered by Tag:</Text>   <Chip
+      icon={<IconX style={{ width: 'rem(16)', height: 'rem(16)' }} />}
+      color="blue"
+      variant="filled"
+      defaultChecked
+      onChange={() => setSelectedTag('')}
+    >
+      {selectedTag}
+    </Chip>
+          </div>
+        }
       <div className='homePosts'>
+       
         <div className='homePostList'>
-          {
-            postList?.posts
-              ?.filter(
-                (data) =>
-                  data?.title?.toLowerCase()?.includes(searchInput.toLowerCase()) || data?.description?.toLowerCase()?.includes(searchInput.toLowerCase())
-              )
-              ?.sort((a, b) => new Date(b?.createdAt) - new Date(a?.createdAt))
-              .map((data, index) => (
-                <div className='postList' ref={ref} style={{ ...springs }}>
+      {
+        postList?.posts
+          ?.sort((a, b) => new Date(b?.createdAt) - new Date(a?.createdAt))
+          .map((data, index) => (
+            <div className='postList' ref={ref} style={{...springs}}>
+              <div className='post'>
 
-                  <div className='post'>
-                    <img className='thumbnail' src={data?.thumbs} alt={data.title} />
-                    <div className='textPost'>
-                      <div className='datenTime'>Posted By: {data?.userName} | <TimeAgo timestamp={data?.createdAt} /></div>
-                      <Link to={{ pathname: `${data._id}`, state: { postList } }}>
-                        <div className='postTitle'>{data?.title}</div>
-                      </Link>
-                      {
-                        <div className='postCategory'>
-                          {
-                            data?.tags?.map((tagsdata, index) => (
-                              <Badge variant="default" color={'#f3f0f0'}>{tagsdata}</Badge>
-                            ))
-                          }
-                          {
-                            userInfo?.role_id == 1 &&
-                            <div className='deleteButton' onClick={() => deletePost(data._id)}>
-                              <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M360 184h-8c4.4 0 8-3.6 8-8v8h304v-8c0 4.4 3.6 8 8 8h-8v72h72v-80c0-35.3-28.7-64-64-64H352c-35.3 0-64 28.7-64 64v80h72v-72zm504 72H160c-17.7 0-32 14.3-32 32v32c0 4.4 3.6 8 8 8h60.4l24.7 523c1.6 34.1 29.8 61 63.9 61h454c34.2 0 62.3-26.8 63.9-61l24.7-523H888c4.4 0 8-3.6 8-8v-32c0-17.7-14.3-32-32-32zM731.3 840H292.7l-24.2-512h487l-24.2 512z"></path></svg>
-                              Delete
-                            </div>
-                          }
-                        </div>
-                      }
-                      {/* <div className='postDescription'> <div
+                  <img className='thumbnail' src={data?.thumbs} alt={data.title}/>
+              
+               
+                <div className='textPost'>
+                
+                    <div className='datenTime'>Posted By: {data?.userName} | <TimeAgo timestamp={data?.createdAt} /></div>
+                
+                 
+                  <Link to={{ pathname: `${data._id}`, state: { postList } }}>
+                    
+                      <div className='postTitle'>{data?.title}</div>
+
+                  
+                  </Link>
+                  {
+                   
+                    <div className='postCategory'>
+                    {
+                      data?.tags?.map((tagsdata, index) => (
+                        <Badge onClick={(e) => setSelectedTag(e.target.innerText) } style={{cursor: 'pointer'}} variant="default"  color={'#f3f0f0'}>{tagsdata}</Badge>
+                      ))
+                    }
+                    {
+                      userInfo?.role_id == 1 && 
+
+                      
+                      <div className='deleteButton' onClick={() => deletePost(data._id)}>
+                        <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M360 184h-8c4.4 0 8-3.6 8-8v8h304v-8c0 4.4 3.6 8 8 8h-8v72h72v-80c0-35.3-28.7-64-64-64H352c-35.3 0-64 28.7-64 64v80h72v-72zm504 72H160c-17.7 0-32 14.3-32 32v32c0 4.4 3.6 8 8 8h60.4l24.7 523c1.6 34.1 29.8 61 63.9 61h454c34.2 0 62.3-26.8 63.9-61l24.7-523H888c4.4 0 8-3.6 8-8v-32c0-17.7-14.3-32-32-32zM731.3 840H292.7l-24.2-512h487l-24.2 512z"></path></svg>
+                        Delete
+                      </div>
+                    }
+                  </div>
+
+                  }
+                 
+                  {/* <div className='postDescription'> <div
                     dangerouslySetInnerHTML={{ __html: data?.description }}
                   /></div> */}
                     </div>

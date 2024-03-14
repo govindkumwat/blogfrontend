@@ -167,14 +167,14 @@ padding: 0 10%;
 }
 
 .desctitle {
- 
+ line-height: normal;
   font-weight: 700;
   font-size: 40px;
 }
 
 .detailContainer {
   margin: 10px 4px;
-  padding: 0 20%;
+  padding: 0 10%;
 }
 
 .descBody{
@@ -555,4 +555,12 @@ padding: 0 10%;
 .imageContainerDesc img {
   max-width: 100%;
   border-radius: 10px;
+}
+.filterchips {
+  padding: 2% 6% 0 11%;
+  display: flex;
+  gap: 10px;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+
 }
