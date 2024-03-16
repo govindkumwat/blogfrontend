@@ -128,7 +128,7 @@ useEffect(() => {
 useEffect(() => {
   const fetchData = async () => {
     try {
-        await getPostList(page, searchInput, selectedTag);
+        await getPostList('', searchInput, selectedTag);
     } catch (error) {
         console.error("Error fetching data:", error);
         // Handle error state if needed

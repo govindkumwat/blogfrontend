@@ -11,6 +11,7 @@ import { userDetails } from '../Radux/actions/auth';
 import '../App.css'
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
+import setPageView from '../Radux/actions/setPageViewAction';
 
 const TimeAgo = ({ timestamp }) => {
     const [timeAgo, setTimeAgo] = useState('');
@@ -43,7 +44,7 @@ const TimeAgo = ({ timestamp }) => {
 };
 const Description = (props) => {
     const params = useParams()
-    const { postById, detailPost, userDetails, userdetails } = props
+    const { postById, detailPost, userDetails, userdetails, setPageView } = props
 
     const [state, setState] = useState({
         id: params?.id,
@@ -52,8 +53,14 @@ const Description = (props) => {
         email: '',
         commentsList: [],
         savecomment: [],
-        loading: false
+        loading: false,
+        postId: detailPost?._id,
+        totalPageView: detailPost?.postView
     });
+
+   
+
+   
 
     useEffect(() => {
         setState(prevState => ({
@@ -104,6 +111,15 @@ const Description = (props) => {
     }, [params.id]);  // Include any dependencies that should trigger a re-fetch
 
 
+    useEffect( () => {
+        if (detailPost ) {
+            setTimeout(() => {
+                (async () => {
+                    await setPageView(detailPost, detailPost);
+                })();
+            }, 1000); // Delay execution using setTimeout to ensure it runs after the render cycle
+        }
+    }, [detailPost]);
 
     useEffect(() => {
         axios(`http://localhost:3000/getcomment/${state?.id}`)
@@ -114,7 +130,6 @@ const Description = (props) => {
                 }))
             })
     }, [])
-
 
 
     const handleComments = async () => {
@@ -170,7 +185,7 @@ const Description = (props) => {
                 {
                     loading ? <Skeleton height={10} width={100} mt={6} mb={6} />
                         :
-                        <div className='datenTime'>Posted By: <strong>{detailPost.userName}</strong>  | <TimeAgo timestamp={detailPost?.createdAt} /></div>
+                        <div className='datenTime'>Posted By: <strong>{detailPost.userName}</strong>  | <TimeAgo timestamp={detailPost?.createdAt} /> | {detailPost.postView} Views</div> 
                 }
 
                 <Divider />
@@ -323,6 +338,7 @@ const mapStateToProps = (state) => {
     return {
         detailPost: state?.postByIdReducer?.data,
         userdetails: state?.loginReducer.user
+
     }
 }
 
@@ -330,7 +346,8 @@ const mapDisPatchToProps = (dispatch) => {
     return bindActionCreators(
         {
             postById,
-            userDetails
+            userDetails,
+            setPageView
         },
         dispatch
     )
