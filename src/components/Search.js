@@ -10,7 +10,7 @@ const Search = ({setSearchInput}) => {
       placeholder="Search ..."
       onChange={(e) => setSearchInput(e.target.value)}
       rightSectionWidth={42}
-      style={{width: '40vw'}}
+      className='searchbarInput'
       leftSection={<IconSearch style={{ width: rem(18), height: rem(18) }} stroke={1.5} />}
       rightSection={
         <ActionIcon size={32} radius="xl" color={'#228be6'} variant="filled">

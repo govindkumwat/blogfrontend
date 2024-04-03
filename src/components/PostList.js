@@ -263,7 +263,7 @@ fetchData();
             <Pagination total={postList?.pageInfo?.totalPages} value={page} onChange={setPage} style={{ marginTop: '10px', paddingLeft: "16%", marginBottom: '20px' }} />
           }
         </div>
-        <div style={{ width: '40%' }}>
+        <div className='topcontain'>
           <div className='topPostContainer'>
             <Suspense fallback={<Loading />}>
               <TopPost postList={postList?.posts} />
